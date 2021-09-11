@@ -1,12 +1,10 @@
 import React from "react";
-import { signInWithGoogle } from "./lib/firebase";
+import { Login } from "./components";
 
 function App() {
   return (
     <div className="App">
-      <button className="" onClick={signInWithGoogle}>
-        Login with Google
-      </button>
+      <Login />
     </div>
   );
 }
