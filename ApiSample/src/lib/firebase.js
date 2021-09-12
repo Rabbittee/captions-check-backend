@@ -1,5 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import {
+  getAuth,
+  connectAuthEmulator,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBaBiazw0Awd6W6kRc8NMm_RZv_w68bix0",
@@ -13,12 +18,14 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+connectAuthEmulator(auth, "http://localhost:9099");
 
 async function signInWithGoogle() {
   var provider = new GoogleAuthProvider();
-  const res = await signInWithPopup(getAuth(), provider);
+  const res = await signInWithPopup(auth, provider);
   const user = res.user;
-  console.log(user);
+  console.log(user.accessToken);
 }
 
 export { signInWithGoogle };
