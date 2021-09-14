@@ -1,0 +1,14 @@
+{
+    "name": "my-firebase-project",
+    "version": "1.0.0",
+    "private": true,
+    "description": "",
+    "main": "",
+    "scripts": {
+        "deploy": "firebase deploy -P PROD",
+        "dev": "firebase emulators:start"
+    },
+    "keywords": [],
+    "author": "You",
+    "license": "NONE"
+}

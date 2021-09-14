@@ -5,7 +5,7 @@ const cookieParser = require("cookie-parser")();
 const cors = require("cors")({ origin: true });
 
 const validateFirebaseIdToken = async (req, res, next) => {
-  functions.logger.log("Check if request is authorized with Firebase ID token");
+  // functions.logger.log("Check if request is authorized with Firebase ID token");
 
   if (
     (!req.headers.authorization ||
@@ -42,7 +42,7 @@ const validateFirebaseIdToken = async (req, res, next) => {
 
   try {
     const decodedIdToken = await admin.auth().verifyIdToken(idToken);
-    functions.logger.log("ID Token correctly decoded", decodedIdToken);
+    // functions.logger.log("ID Token correctly decoded", decodedIdToken);
     req.user = decodedIdToken;
     next();
     return;

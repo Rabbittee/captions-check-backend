@@ -10,13 +10,17 @@ const {
   validateFirebaseIdToken,
 } = require("./util/middleware");
 
+const groups = require("./routers/groups");
+
 const app = express();
 
 app.use(cors);
 app.use(cookieParser);
 app.use(validateFirebaseIdToken);
+
 app.get("/hello", (req, res) => {
-  res.send(`Hello ${req.user.name}`);
+  res.json(req.user);
 });
+app.use("/groups", groups);
 
 exports.app = functions.https.onRequest(app);
