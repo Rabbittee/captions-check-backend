@@ -4,12 +4,41 @@ info:
   version: "1.0"
   description: ""
 servers:
+  - url: http://127.0.0.1:5001/functions-test-6da7a/us-central1/app
   - url: https://localhost:3000/api
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
-    Org:
-      description: "組織：成員可檢視內部所有字幕任務清單"
+    User:
+      description: "人員資訊"
+      type: object
+      properties:
+        name:
+          type: string
+          example: "小白"
+        email:
+          type: string
+          example: "little.white.liar@gmail.com"
+        token:
+          type: string
+          format: sha-256
+        createDate:
+          type: string
+          format: date-time
+          example: "2016-08-29T09:12:33.001Z"
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/Group"
+        isActive:
+          type: boolean
+          default: true
+    Group:
+      description: "群組：成員可檢視內部所有字幕任務清單"
       type: object
       required:
         - id
@@ -17,8 +46,7 @@ components:
       properties:
         id:
           type: string
-          format: uuid
-          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+          pattern: '^[A-Za-z0-9]{20}$'
         name:
           type: string
           example: "兔兔教"
@@ -38,34 +66,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/User"
-    User:
-      description: "人員資訊"
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: d290f1ee-6c54-4b01-90e6-d701748f0851
-        name:
-          type: string
-          example: "小白"
-        email:
-          type: string
-          example: "little.white.liar@gmail.com"
-        token:
-          type: string
-          format: sha-256
-        createDate:
-          type: string
-          format: date-time
-          example: "2016-08-29T09:12:33.001Z"
-        orgs:
-          type: array
-          items:
-            $ref: "#/components/schemas/Org"
-        isActive:
-          type: boolean
-          default: true
     Task:
       description: "檢核任務"
       type: object
@@ -85,33 +85,40 @@ components:
           type: string
           format: date-time
           example: "2016-08-29T09:12:33.001Z"
-        org:
-          $ref: "#/components/schemas/Org"
+        group:
+          $ref: "#/components/schemas/Group"
         isComplete:
           type: boolean
           default: true
 
 paths:
-  /api/v1/{orgId}/Task:
-    get:
-      summary: "取得組織內的任務清單"
-      parameters:
-        - in: path
-          name: orgId
-          required: true
-          description: org id
-          schema:
-            type: string
-            format: uuid
+  /groups:
+    post:
+      summary: create group
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - "name"
+                - "description"
+              properties:
+                name:
+                  type: string
+                  example: 兔兔教
+                description:
+                  type: string
+                  example: 哈囉直播字幕校稿組！
       responses:
         200:
           description: Success
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Task"
+                $ref: "#/components/schemas/Group"
         400:
           description: Bad request
           content:
