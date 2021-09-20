@@ -1,29 +1,34 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const express = require("express");
 const router = express.Router();
-const db = admin.firestore();
-const groupsRef = db.collection("groups");
+const { groupsRef, usersRef } = require("../models");
 
 // create group
 router.post("/", async (req, res) => {
+  const userRef = usersRef.doc(req.user.email);
+  let doc = await groupsRef.where("name", "==", req.body.name).get();
+  if (!doc.empty) {
+    res.status(400).json({ error: `Group: ${req.body.name} exist` });
+    return;
+  }
+
+  const groupRef = await groupsRef.doc();
   const data = {
+    id: groupRef.id,
     name: req.body.name,
     description: req.body.description,
     isPublic: req.body.isPublic || true,
     createDate: admin.firestore.Timestamp.fromDate(new Date()),
-    manager: req.user.user_id,
-    members: [req.user.user_id],
+    manager: userRef,
+    members: [userRef],
   };
 
-  const groupRes = await groupsRef.doc(data.name);
-  let doc = await groupRes.get();
-  if (doc.exists) {
-    return res.status(400).json({ error: `Group: ${data.name} exist` });
-  }
+  await groupRef.set(data);
+  await userRef.update({
+    groups: admin.firestore.FieldValue.arrayUnion(groupRef),
+  });
 
-  await groupRes.set(data);
-  doc = await groupRes.get();
+  doc = await groupRef.get();
   res.json(doc.data());
 });
 

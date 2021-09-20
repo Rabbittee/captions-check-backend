@@ -1,7 +1,5 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
-const db = admin.firestore();
-const UsersRef = db.collection("users");
+const { usersRef } = require("../models");
 
 exports.createUser = async (user) => {
   const UserData = user.toJSON();
@@ -19,5 +17,5 @@ exports.createUser = async (user) => {
   Object.assign(UserData, mergeData);
   delete UserData.providerData;
   delete UserData.metadata;
-  await UsersRef.doc(user.email).set(UserData);
+  await usersRef.doc(user.email).set(UserData);
 };

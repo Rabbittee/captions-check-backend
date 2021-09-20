@@ -15,14 +15,14 @@ const users = require("./routers/users");
 
 const app = express();
 
+// middlewares
 app.use(cors);
 app.use(cookieParser);
 app.use(validateFirebaseIdToken);
 
-app.get("/hello", (req, res) => {
-  res.json(req.user);
-});
+// routers
 app.use("/groups", groups);
-
 exports.app = functions.https.onRequest(app);
+
+// triggers
 exports.createUser = functions.auth.user().onCreate(users.createUser);
