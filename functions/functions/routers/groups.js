@@ -16,16 +16,15 @@ router.post("/", async (req, res) => {
     members: [req.user.user_id],
   };
 
-  const allGroupRes = await groupsRef.where("name", "==", data.name).get();
-  if (!allGroupRes.empty) {
-    allGroupRes.forEach((doc) => {
-      functions.logger.warn(doc.id, "=>", doc.data());
-    });
-    return res.json({ result: `Group: ${data.name} exist` });
+  const groupRes = await groupsRef.doc(data.name);
+  let doc = await groupRes.get();
+  if (doc.exists) {
+    return res.status(400).json({ error: `Group: ${data.name} exist` });
   }
 
-  const writeResult = await groupsRef.add(data);
-  res.json({ result: writeResult.data() });
+  await groupRes.set(data);
+  doc = await groupRes.get();
+  res.json(doc.data());
 });
 
 // get group list
