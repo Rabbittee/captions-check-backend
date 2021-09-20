@@ -11,6 +11,7 @@ const {
 } = require("./util/middleware");
 
 const groups = require("./routers/groups");
+const users = require("./routers/users");
 
 const app = express();
 
@@ -24,3 +25,4 @@ app.get("/hello", (req, res) => {
 app.use("/groups", groups);
 
 exports.app = functions.https.onRequest(app);
+exports.createUser = functions.auth.user().onCreate(users.createUser);

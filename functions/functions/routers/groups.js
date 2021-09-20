@@ -11,7 +11,7 @@ router.post("/", async (req, res) => {
     name: req.body.name,
     description: req.body.description,
     isPublic: req.body.isPublic || true,
-    createDate: new Date(),
+    createDate: admin.firestore.Timestamp.fromDate(new Date()),
     manager: req.user.user_id,
     members: [req.user.user_id],
   };
@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
   }
 
   const writeResult = await groupsRef.add(data);
-  res.json({ result: `Group with ID: ${writeResult.id} Created.` });
+  res.json({ result: writeResult.data() });
 });
 
 // get group list
