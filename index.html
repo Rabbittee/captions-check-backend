@@ -45,8 +45,9 @@
     <script>
       window.onload = function () {
         // Begin Swagger UI call region
+        const subDomain = window.location.href.split("/")[2].split(".")[0];
         const ui = SwaggerUIBundle({
-          url: "https://raw.githubusercontent.com/HuskyHsu/captions-check-backend/main/Docs/openapi.yml",
+          url: `https://raw.githubusercontent.com/${subDomain}/captions-check-backend/main/Docs/openapi.yml`,
           dom_id: "#swagger-ui",
           deepLinking: true,
           presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
