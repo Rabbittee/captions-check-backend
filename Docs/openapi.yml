@@ -47,6 +47,7 @@ components:
         id:
           type: string
           pattern: '^[A-Za-z0-9]{20}$'
+          example: 9q50NMFsL2XQ9wxny6Qv
         name:
           type: string
           example: "兔兔教"
@@ -90,11 +91,22 @@ components:
         isComplete:
           type: boolean
           default: true
-
+    Error:
+      description: "error msg"
+      type: object
+      properties:
+        type:
+          type: string
+          example: UNAUTHORIZED
+        msg:
+          type: string
+          example: Permission denied
 paths:
   /groups:
     post:
       summary: create group
+      tags:
+        - "Group"
       security:
         - bearerAuth: []
       requestBody:
@@ -124,17 +136,99 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: object
-                    properties:
-                      type:
-                        description: error type
-                        type: string
-                      message:
-                        description: error message
-                        type: string
+                $ref: "#/components/schemas/Error"
+    get:
+      summary: get group list
+      tags:
+        - "Group"
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: name
+          description: filter name
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
+  /groups/register:
+    post:
+      summary: register user of group
+      tags:
+        - "Group"
+        - "User"
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - "groupId"
+              properties:
+                groupId:
+                  type: string
+                  pattern: '^[A-Za-z0-9]{20}$'
+                  example: 9q50NMFsL2XQ9wxny6Qv
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
+  /groups/{groupId}:
+    get:
+      summary: get group info
+      tags:
+        - "Group"
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: groupId
+          required: true
+          description: groupId
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9]{20}$'
+            example: 9q50NMFsL2XQ9wxny6Qv
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
+tags:
+  - name: Group
+  - name: User
