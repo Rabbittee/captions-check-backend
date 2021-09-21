@@ -5,7 +5,6 @@ info:
   description: ""
 servers:
   - url: http://127.0.0.1:5001/functions-test-6da7a/us-central1/app
-  - url: https://localhost:3000/api
 
 components:
   securitySchemes:
@@ -17,15 +16,12 @@ components:
       description: "人員資訊"
       type: object
       properties:
-        name:
+        displayName:
           type: string
           example: "小白"
         email:
           type: string
           example: "little.white.liar@gmail.com"
-        token:
-          type: string
-          format: sha-256
         createDate:
           type: string
           format: date-time
