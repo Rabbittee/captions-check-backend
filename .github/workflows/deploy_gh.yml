@@ -20,4 +20,5 @@ jobs:
           npm install
       - name: Run deploy gh-pages
         run: |
+          cd Docs
           npm run deploy
