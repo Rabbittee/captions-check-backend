@@ -21,4 +21,6 @@ jobs:
       - name: Run deploy gh-pages
         run: |
           cd Docs
+          git config --global user.email "rabbittee@github.com"
+          git config --global user.name "rabbittee"
           npm run deploy
