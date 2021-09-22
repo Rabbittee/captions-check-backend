@@ -1,0 +1,23 @@
+name: A workflow for issue comment
+on:
+    push:
+        branches:
+            - main
+jobs:
+    deploy:
+        name: create daily folder
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - name: Set up Node
+            - uses: actions/setup-node@v2
+              with:
+                  node-version: "14"
+            - name: Install dependencies
+              run: |
+                  cd Docs
+                  cp openapi.yml dist/openapi.yml
+                  npm install
+            - name: Run deploy gh-pages
+              run: |
+                  npm run deploy
