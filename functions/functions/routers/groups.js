@@ -60,8 +60,6 @@ router.post("/register", async (req, res) => {
   const groupRef = groupsRef.doc(groupId);
   let group = await groupRef.get();
   const members = group.data().members;
-  console.log(req.user);
-
   if (members.filter((memberRef) => memberRef.path == userRef.path).length) {
     res.status(400).json({
       type: "DUPLICATED_VALUE",
@@ -81,6 +79,7 @@ router.post("/register", async (req, res) => {
 // get group info
 router.get("/:groupId", async (req, res) => {
   const { groupId } = req.params;
+  // ToDo: check user permissions
 
   const doc = await groupsRef.doc(groupId).get();
   if (!doc.exists) {
