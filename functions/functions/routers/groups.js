@@ -55,18 +55,27 @@ router.get("/", async (req, res) => {
 // register to group
 router.post("/register", async (req, res) => {
   const { groupId } = req.body;
-  const { user } = req;
+  const userRef = usersRef.doc(req.user.email);
 
   const groupRef = groupsRef.doc(groupId);
-  const group = await groupRef.get();
-  if (group.members.indexOf(user.user_id) > -1) {
-    return res.json({ type: "", msg: `member ${user.name} exist` });
+  let group = await groupRef.get();
+  const members = group.data().members;
+  console.log(req.user);
+
+  if (members.filter((memberRef) => memberRef.path == userRef.path).length) {
+    res.status(400).json({
+      type: "DUPLICATED_VALUE",
+      msg: `member ${req.user.name} exist`,
+    });
+    return;
   }
 
-  const groupNew = await groupRef.update({
-    members: group.members.concat([user.user_id]),
+  await groupRef.update({
+    members: admin.firestore.FieldValue.arrayUnion(userRef),
   });
-  res.json({ result: groupNew.data() });
+
+  group = await groupRef.get();
+  res.json(await Group.getUser(group.data()));
 });
 
 // get group info
@@ -75,7 +84,10 @@ router.get("/:groupId", async (req, res) => {
 
   const doc = await groupsRef.doc(groupId).get();
   if (!doc.exists) {
-    return res.json(`NO GROUP: ${groupId}`);
+    res
+      .status(400)
+      .json({ type: "DUPLICATED_VALUE", msg: `NO GROUP: ${groupId}` });
+    return;
   }
 
   res.json(doc.data());
