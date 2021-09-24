@@ -1,13 +1,12 @@
 const admin = require("firebase-admin");
 const express = require("express");
 const router = express.Router();
-const { groupsRef, usersRef } = require("../models");
-const Group = require("../models/Group");
+const { Group, User } = require("../models");
 
 // create group
 router.post("/", async (req, res) => {
-  const userRef = usersRef.doc(req.user.email);
-  let doc = await groupsRef.where("name", "==", req.body.name).get();
+  const userRef = User.getUserRef(req.user.email);
+  let doc = await Group.getGroupRef().where("name", "==", req.body.name).get();
   if (!doc.empty) {
     res
       .status(400)
@@ -15,7 +14,7 @@ router.post("/", async (req, res) => {
     return;
   }
 
-  const groupRef = await groupsRef.doc();
+  const groupRef = await Group.getGroupRef().doc();
   const data = {
     id: groupRef.id,
     name: req.body.name,
@@ -27,9 +26,7 @@ router.post("/", async (req, res) => {
   };
 
   await groupRef.set(data);
-  await userRef.update({
-    groups: admin.firestore.FieldValue.arrayUnion(groupRef),
-  });
+  await User.joinGroup(userRef, groupRef);
 
   doc = await groupRef.get();
   res.json(await Group.getUser(doc.data()));
@@ -55,9 +52,9 @@ router.get("/", async (req, res) => {
 // register to group
 router.post("/register", async (req, res) => {
   const { groupId } = req.body;
-  const userRef = usersRef.doc(req.user.email);
+  const userRef = User.getUserRef(req.user.email);
 
-  const groupRef = groupsRef.doc(groupId);
+  const groupRef = Group.getGroupRef().doc(groupId);
   let group = await groupRef.get();
   const members = group.data().members;
   if (members.filter((memberRef) => memberRef.path == userRef.path).length) {
@@ -72,6 +69,8 @@ router.post("/register", async (req, res) => {
     members: admin.firestore.FieldValue.arrayUnion(userRef),
   });
 
+  await User.joinGroup(userRef, groupRef);
+
   group = await groupRef.get();
   res.json(await Group.getUser(group.data()));
 });
@@ -81,7 +80,7 @@ router.get("/:groupId", async (req, res) => {
   const { groupId } = req.params;
   // ToDo: check user permissions
 
-  const doc = await groupsRef.doc(groupId).get();
+  const doc = await Group.getGroupRef().doc(groupId).get();
   if (!doc.exists) {
     res
       .status(400)

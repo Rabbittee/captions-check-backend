@@ -1,4 +1,13 @@
-const getUser = async (userRef, fields = ["displayName"]) => {
+const admin = require("firebase-admin");
+const db = admin.firestore();
+
+const usersRef = db.collection("users");
+
+const getUserRef = (email) => {
+  return usersRef.doc(email);
+};
+
+const getUserData = async (userRef, fields = ["displayName"]) => {
   const user = await userRef.get();
   return fields.reduce((obj, key) => {
     obj[key] = user.get(key);
@@ -6,4 +15,14 @@ const getUser = async (userRef, fields = ["displayName"]) => {
   }, {});
 };
 
-exports.getUser = getUser;
+const joinGroup = async (userRef, groupRef) => {
+  await userRef.update({
+    groups: admin.firestore.FieldValue.arrayUnion(groupRef),
+  });
+};
+
+module.exports = {
+  getUserRef,
+  getUserData,
+  joinGroup,
+};
