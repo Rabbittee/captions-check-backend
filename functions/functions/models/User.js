@@ -3,9 +3,7 @@ const db = admin.firestore();
 
 const usersRef = db.collection("users");
 
-const getUserRef = (email) => {
-  return usersRef.doc(email);
-};
+const getUserRef = (email) => usersRef.doc(email);
 
 const getUserData = async (userRef, fields = ["displayName"]) => {
   const user = await userRef.get();
