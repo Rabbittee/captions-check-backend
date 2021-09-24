@@ -1,8 +1,7 @@
-const admin = require("firebase-admin");
-const db = admin.firestore();
+const Group = require("./Group");
+const User = require("./User");
 
-const groupsRef = db.collection("groups");
-const usersRef = db.collection("users");
-
-exports.groupsRef = groupsRef;
-exports.usersRef = usersRef;
+module.exports = {
+  Group,
+  User,
+};
