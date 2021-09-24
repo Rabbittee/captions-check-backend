@@ -6,7 +6,7 @@ const { Group, User } = require("../models");
 // create group
 router.post("/", async (req, res) => {
   const userRef = User.getUserRef(req.user.email);
-  let doc = await Group.getGroupRef().where("name", "==", req.body.name).get();
+  let doc = await Group.queryGroup(req.body.name);
   if (!doc.empty) {
     res
       .status(400)
@@ -14,7 +14,7 @@ router.post("/", async (req, res) => {
     return;
   }
 
-  const groupRef = await Group.getGroupRef().doc();
+  const groupRef = await Group.getGroupRef();
   const data = {
     id: groupRef.id,
     name: req.body.name,
@@ -25,10 +25,10 @@ router.post("/", async (req, res) => {
     members: [userRef],
   };
 
-  await groupRef.set(data);
+  await Group.setGroup(groupRef, data);
   await User.joinGroup(userRef, groupRef);
 
-  doc = await groupRef.get();
+  doc = await Group.getGroupData(groupRef);
   res.json(await Group.getUser(doc.data()));
 });
 
@@ -54,7 +54,7 @@ router.post("/register", async (req, res) => {
   const { groupId } = req.body;
   const userRef = User.getUserRef(req.user.email);
 
-  const groupRef = Group.getGroupRef().doc(groupId);
+  const groupRef = Group.getGroupRef(groupId);
   let group = await groupRef.get();
   const members = group.data().members;
   if (members.filter((memberRef) => memberRef.path == userRef.path).length) {
@@ -80,7 +80,7 @@ router.get("/:groupId", async (req, res) => {
   const { groupId } = req.params;
   // ToDo: check user permissions
 
-  const doc = await Group.getGroupRef().doc(groupId).get();
+  const doc = await Group.getGroupRef(groupId).get();
   if (!doc.exists) {
     res
       .status(400)

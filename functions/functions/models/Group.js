@@ -2,7 +2,27 @@ const User = require("./User");
 const admin = require("firebase-admin");
 const db = admin.firestore();
 
-const getGroupRef = () => db.collection("groups");
+const groupsRef = db.collection("groups");
+
+const queryGroup = async (name) => {
+  return await groupsRef.where("name", "==", name).get();
+};
+
+const getGroupRef = (groupId) => {
+  if (groupId != null) {
+    return groupsRef.doc(groupId);
+  } else {
+    return groupsRef.doc();
+  }
+};
+
+const getGroupData = async (groupRef) => {
+  return await groupRef.get();
+};
+
+const setGroup = async (groupRef, data) => {
+  await groupRef.set(data);
+};
 
 const getUser = async (group) => {
   group.manager = await User.getUserData(group.manager);
@@ -26,7 +46,10 @@ const getList = async (name) => {
 };
 
 module.exports = {
+  queryGroup,
   getGroupRef,
+  getGroupData,
+  setGroup,
   getUser,
   getList,
 };
