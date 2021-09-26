@@ -12,6 +12,7 @@ exports.createUser = async (user) => {
       new Date(Number(UserData.metadata.lastSignInTime))
     ),
     isActive: true,
+    admin: false,
     groups: [],
   };
   Object.assign(UserData, mergeData);

@@ -1,5 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { User } = require("../models");
 
 const cookieParser = require("cookie-parser")();
 const cors = require("cors")({ origin: true });
@@ -44,6 +45,10 @@ const validateFirebaseIdToken = async (req, res, next) => {
     const decodedIdToken = await admin.auth().verifyIdToken(idToken);
     // functions.logger.log("ID Token correctly decoded", decodedIdToken);
     req.user = decodedIdToken;
+    const userRef = User.getUserRef(req.user.email);
+    const user = await User.getUserData(userRef, ["admin"]);
+    req.user.admin = user.admin;
+    req.user.userRef = userRef;
     next();
     return;
   } catch (error) {
