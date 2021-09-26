@@ -5,7 +5,6 @@ const { Group, User } = require("../models");
 
 // create group
 router.post("/", async (req, res) => {
-  const userRef = User.getUserRef(req.user.email);
   let doc = await Group.queryGroup(req.body.name);
   if (!doc.empty) {
     res
@@ -21,74 +20,70 @@ router.post("/", async (req, res) => {
     description: req.body.description,
     isPublic: req.body.isPublic || true,
     createDate: admin.firestore.Timestamp.fromDate(new Date()),
-    manager: userRef,
-    members: [userRef],
+    manager: req.user.userRef,
+    members: [req.user.userRef],
   };
 
   await Group.setGroup(groupRef, data);
-  await User.joinGroup(userRef, groupRef);
+  await User.joinGroup(req.user.userRef, groupRef);
 
-  doc = await Group.getGroupData(groupRef);
-  res.json(await Group.getUser(doc.data()));
+  const group = await Group.getGroupData(groupRef, false);
+  return res.json(group);
 });
 
 // get group list
 router.get("/", async (req, res) => {
   const { name } = req.query;
-  let snapshot = await Group.getList(name);
-
-  if (snapshot.empty) {
-    res.json([]);
-    return;
+  if (!req.user.admin) {
+    res.status(400).json({ type: "PERMISSION_DENIED", msg: "" });
   }
+  let groups = await Group.getList(name);
 
-  const output = await Promise.all(
-    snapshot.docs.map(async (doc) => await Group.getUser(doc.data()))
-  );
-
-  res.json(output);
+  res.json(groups);
+  return;
 });
 
 // register to group
 router.post("/register", async (req, res) => {
   const { groupId } = req.body;
-  const userRef = User.getUserRef(req.user.email);
-
   const groupRef = Group.getGroupRef(groupId);
-  let group = await groupRef.get();
-  const members = group.data().members;
-  if (members.filter((memberRef) => memberRef.path == userRef.path).length) {
-    res.status(400).json({
-      type: "DUPLICATED_VALUE",
-      msg: `member ${req.user.name} exist`,
-    });
+  let group = await Group.getGroupData(groupRef, { raw: true });
+
+  try {
+    await Group.registerUser(group, req.user);
+  } catch (error) {
+    res.status(400).json(error);
     return;
   }
 
-  await groupRef.update({
-    members: admin.firestore.FieldValue.arrayUnion(userRef),
-  });
-
-  await User.joinGroup(userRef, groupRef);
-
-  group = await groupRef.get();
-  res.json(await Group.getUser(group.data()));
+  group = await Group.getGroupData(groupRef, { addRef: false });
+  res.json(group);
+  return;
 });
 
 // get group info
 router.get("/:groupId", async (req, res) => {
   const { groupId } = req.params;
-  // ToDo: check user permissions
+  const groupRef = Group.getGroupRef(groupId);
+  const group = await Group.getGroupData(groupRef, {
+    addRef: false,
+    raw: true,
+  });
 
-  const doc = await Group.getGroupRef(groupId).get();
-  if (!doc.exists) {
+  if (group === undefined) {
     res
       .status(400)
       .json({ type: "DUPLICATED_VALUE", msg: `NO GROUP: ${groupId}` });
     return;
   }
+  if (!Group.checkUser(group, req.user)) {
+    res
+      .status(400)
+      .json({ type: "PERMISSION_DENIED", msg: `you are not in this group` });
+    return;
+  }
 
-  res.json(doc.data());
+  res.json(await Group.format(group));
 });
 
 module.exports = router;
