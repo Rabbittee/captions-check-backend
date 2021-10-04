@@ -2,9 +2,7 @@ const admin = require("firebase-admin");
 const chai = require("chai");
 const sinon = require("sinon");
 
-const test = require("firebase-functions-test")({
-  projectId: "functions-test-6da7a",
-});
+const test = require("firebase-functions-test")();
 const assert = chai.assert;
 
 describe("Cloud Functions", () => {
